@@ -2,7 +2,8 @@
 
 namespace mdm\admin\models\searchs;
 
-use Yii;
+
+use backend\components\constant\CommonConstant;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use mdm\admin\models\User as UserModel;
@@ -53,6 +54,8 @@ class User extends UserModel
             return $dataProvider;
         }
 
+        $query->andWhere(['is_delete' => CommonConstant::DELETE_NO]);
+
         $query->andFilterWhere([
             'id' => $this->id,
             'status' => $this->status,
@@ -60,11 +63,7 @@ class User extends UserModel
             'updated_at' => $this->updated_at,
         ]);
 
-        $query->andFilterWhere(['like', 'username', $this->username])
-            ->andFilterWhere(['like', 'auth_key', $this->auth_key])
-            ->andFilterWhere(['like', 'password_hash', $this->password_hash])
-            ->andFilterWhere(['like', 'password_reset_token', $this->password_reset_token])
-            ->andFilterWhere(['like', 'email', $this->email]);
+        $query->andFilterWhere(['like', 'username', $this->username]);
 
         return $dataProvider;
     }

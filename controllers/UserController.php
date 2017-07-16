@@ -2,11 +2,16 @@
 
 namespace mdm\admin\controllers;
 
+use backend\components\constant\CommonConstant;
+use backend\components\constant\UserConstant;
+use backend\models\AreaModel;
+use backend\models\CityModel;
+use backend\models\CommunityModel;
+use backend\models\SurofficeModel;
 use Yii;
 use mdm\admin\models\form\Login;
 use mdm\admin\models\form\PasswordResetRequest;
 use mdm\admin\models\form\ResetPassword;
-use mdm\admin\models\form\Signup;
 use mdm\admin\models\form\ChangePassword;
 use mdm\admin\models\User;
 use mdm\admin\models\searchs\User as UserSearch;
@@ -58,6 +63,7 @@ class UserController extends Controller
         return false;
     }
 
+
     /**
      * @inheritdoc
      */
@@ -76,12 +82,43 @@ class UserController extends Controller
     public function actionIndex()
     {
         $searchModel = new UserSearch();
+
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
         ]);
+    }
+
+    public function actionAutoComplete()
+    {
+        $item = trim(Yii::$app->request->get('term', ''));
+        $type = Yii::$app->request->get('type', 1);
+
+        switch ($type)
+        {
+            case UserConstant::USER_LEVEL_CITY:
+                $model = new  CityModel();
+                break;
+            case UserConstant::USER_LEVEL_AREA:
+                $model = new  AreaModel();
+                break;
+            case UserConstant::USER_LEVEL_SUROFFICE:
+                $model = new  SurofficeModel();
+                break;
+            case UserConstant::USER_LEVEL_COMMUNITY:
+                $model = new  CommunityModel();
+                break;
+
+            default:
+                $model = new  CommunityModel();
+                break;
+        }
+
+        $data = $model::find()->select(['name as value', 'name as  label', 'areacode as id'])->where(['like', 'name', $item])->asArray()->all();
+
+        echo json_encode($data); //format the array into json data
     }
 
     /**
@@ -97,6 +134,27 @@ class UserController extends Controller
     }
 
     /**
+     *  添加用户
+     * @return string
+     */
+    public function actionAdd()
+    {
+        $userModel = new User();
+
+        if ($userModel->load(Yii::$app->getRequest()->post())) {
+            $userModel->password = md5($userModel->username.$userModel->password);
+
+            if ($userModel->save()) {
+                return $this->redirect(['index']);
+            }
+        }
+
+        return $this->render('add', [
+            'model' => $userModel,
+        ]);
+    }
+
+    /**
      * Deletes an existing User model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
@@ -104,8 +162,9 @@ class UserController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
-
+        $model = $this->findModel($id);
+        $model->is_delete = CommonConstant::DELETE_YES;
+        $model->save();
         return $this->redirect(['index']);
     }
 
@@ -138,24 +197,6 @@ class UserController extends Controller
         Yii::$app->getUser()->logout();
 
         return $this->goHome();
-    }
-
-    /**
-     * Signup new user
-     * @return string
-     */
-    public function actionSignup()
-    {
-        $model = new Signup();
-        if ($model->load(Yii::$app->getRequest()->post())) {
-            if ($user = $model->signup()) {
-                return $this->goHome();
-            }
-        }
-
-        return $this->render('signup', [
-                'model' => $model,
-        ]);
     }
 
     /**

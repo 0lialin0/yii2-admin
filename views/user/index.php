@@ -14,6 +14,9 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="user-index">
 
     <h1><?= Html::encode($this->title) ?></h1>
+    <p>
+        <?= Html::a('新增用户', ['add'], ['class' => 'btn btn-success']) ?>
+    </p>
 
     <?=
     GridView::widget([
@@ -22,16 +25,15 @@ $this->params['breadcrumbs'][] = $this->title;
         'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             'username',
-            'email:email',
             'created_at:date',
             [
                 'attribute' => 'status',
                 'value' => function($model) {
-                    return $model->status == 0 ? 'Inactive' : 'Active';
+                    return $model->status == 0 ? '禁用' : '正常';
                 },
                 'filter' => [
-                    0 => 'Inactive',
-                    10 => 'Active'
+                    0 => '禁用',
+                    10 => '正常'
                 ]
             ],
             [

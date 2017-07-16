@@ -2,12 +2,13 @@
 
 namespace mdm\admin\models;
 
+
 use Yii;
 use yii\base\NotSupportedException;
 use yii\behaviors\TimestampBehavior;
-use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
 use mdm\admin\components\Configs;
+use common\models\UserModel;
 
 /**
  * User model
@@ -25,10 +26,10 @@ use mdm\admin\components\Configs;
  *
  * @property UserProfile $profile
  */
-class User extends ActiveRecord implements IdentityInterface
+class User extends UserModel implements IdentityInterface
 {
     const STATUS_INACTIVE = 0;
-    const STATUS_ACTIVE = 10;
+    const STATUS_ACTIVE = 1;
 
     /**
      * @inheritdoc
@@ -37,6 +38,8 @@ class User extends ActiveRecord implements IdentityInterface
     {
         return Configs::instance()->userTable;
     }
+
+
 
     /**
      * @inheritdoc
@@ -53,10 +56,12 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function rules()
     {
-        return [
+        $rules =  [
             ['status', 'default', 'value' => self::STATUS_ACTIVE],
             ['status', 'in', 'range' => [self::STATUS_ACTIVE, self::STATUS_INACTIVE]],
         ];
+
+        return array_merge(parent::rules(), $rules);
     }
 
     /**
